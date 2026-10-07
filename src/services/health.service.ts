@@ -1,6 +1,19 @@
-export function getHealth(): { status: string; uptime: number } {
-    return {
-        status: "ok" as const,
-        uptime: process.uptime(),
-    };
+import { prisma } from "../lib/prisma.js";
+
+export async function getHealth(): Promise<{ status: "ok" | "error"; database: "up" | "down"; uptime: number; }> {
+    try {
+        await prisma.$queryRaw`SELECT 1`;
+        return {
+            status: "ok",
+            database: "up",
+            uptime: process.uptime(),
+        };
+    } catch (error) {
+        console.error("database health check failed", error);
+        return {
+            status: "error",
+            database: "down",
+            uptime: process.uptime(),
+        };
+    }
 };
