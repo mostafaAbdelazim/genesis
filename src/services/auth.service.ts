@@ -4,10 +4,7 @@ import { prisma } from "../lib/prisma.js";
 import { isValidEmail, isValidPassword, isNullOrUndefinedOrEmpty } from "../utils/input_validator.js";
 
 export async function register(email: string, password: string, name: string) {
-    const error = _validateInput(email, password, name, true);
-    if (error) {
-        throw new Error(error);
-    }
+    _validateInput(email, password, name, true);
 
     const existingUser = await prisma.user.findUnique({
         where: { email },
@@ -36,10 +33,7 @@ export async function register(email: string, password: string, name: string) {
     };
 }
 export async function login(email: string, password: string) {
-    const error = _validateInput(email, password);
-    if (error) {
-        throw new Error(error);
-    }
+    _validateInput(email, password);
 
     const user = await prisma.user.findUnique({
         where: { email },
@@ -63,21 +57,20 @@ export async function login(email: string, password: string) {
     };
 }
 
-function _validateInput(email: string, password: string, name?: string | null | undefined, isRegister: boolean = false): string | null {
+function _validateInput(email: string, password: string, name?: string | null | undefined, isRegister: boolean = false) {
     if (isNullOrUndefinedOrEmpty(email)) {
-        return "Email is required and cannot be empty";
+        throw new Error("Email is required and cannot be empty");
     }
     if (isNullOrUndefinedOrEmpty(password)) {
-        return "Password is required and cannot be empty";
+        throw new Error("Password is required and cannot be empty");
     }
     if (isRegister && isNullOrUndefinedOrEmpty(name)) {
-        return "Name is required and cannot be empty";
+        throw new Error("Name is required and cannot be empty");
     }
     if (!isValidEmail(email)) {
-        return "Invalid email";
+        throw new Error("Invalid email");
     }
     if (isRegister && !isValidPassword(password)) {
-        return "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character";
+        throw new Error("Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character");
     }
-    return null;
 }
