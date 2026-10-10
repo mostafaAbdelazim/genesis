@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import routes from "./routes/index.js";
+import { authMiddleware } from "./middleware/auth.middleware.js";
 
 const app = express();
 
