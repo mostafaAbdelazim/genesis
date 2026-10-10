@@ -36,7 +36,10 @@ export async function register(email: string, password: string, name: string) {
     };
 }
 export async function login(email: string, password: string) {
-    _validateInput(email, password);
+    const error = _validateInput(email, password);
+    if (error) {
+        throw new Error(error);
+    }
 
     const user = await prisma.user.findUnique({
         where: { email },

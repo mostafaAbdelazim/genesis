@@ -4,7 +4,7 @@ import { register, login } from "../services/auth.service.js";
 export async function registerController(req: Request, res: Response) {
     try {
         const result = await register(req.body.email, req.body.password, req.body.name);
-        res.status(200).json(result);
+        res.status(201).json(result);
     } catch (error) {
         handleError(error as Error, res);
     }
