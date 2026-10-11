@@ -39,7 +39,7 @@ export async function logoutController(req: Request, res: Response) {
 
 function handleError(error: Error, res: Response) {
     const message = (error as Error).message;
-    if (message === "Invalid credentials" || "Invalid refresh token") return res.status(401).json({ error: message });
+    if (message === "Invalid credentials" || message === "Invalid refresh token") return res.status(401).json({ error: message });
     if (message === "Email already in use") return res.status(409).json({ error: message });
     if (message.startsWith("Invalid") || message.includes("required")) {
         return res.status(400).json({ error: message });
