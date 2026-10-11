@@ -1,5 +1,6 @@
 import { hashPassword, verifyPassword } from "../utils/password.js";
 import { generateAccessToken } from "../utils/tokens.js";
+import refreshTokenUtils from "../utils/refresh-token.js";
 import { prisma } from "../lib/prisma.js";
 import { isValidEmail, isValidPassword, isNullOrUndefinedOrEmpty } from "../utils/input_validator.js";
 
@@ -23,8 +24,12 @@ export async function register(email: string, password: string, name: string) {
         },
     });
 
+    const refreshToken = refreshTokenUtils.generateRefreshToken();
+    await refreshTokenUtils.saveRefreshToken(user.id, refreshToken);
+
     return {
         accessToken: generateAccessToken({ sub: user.id, email: user.email }),
+        refreshToken: refreshToken,
         user: {
             id: user.id,
             email: user.email,
@@ -45,8 +50,13 @@ export async function login(email: string, password: string) {
     if (!isPasswordValid) {
         throw new Error("Invalid credentials");
     }
+
+    const refreshToken = refreshTokenUtils.generateRefreshToken();
+    await refreshTokenUtils.saveRefreshToken(user.id, refreshToken);
+
     return {
         accessToken: generateAccessToken({ sub: user.id, email: user.email }),
+        refreshToken: refreshToken,
         user: {
             id: user.id,
             email: user.email,
@@ -55,6 +65,31 @@ export async function login(email: string, password: string) {
             updatedAt: user.updatedAt,
         }
     };
+}
+export async function refresh(refreshToken: string) {
+    const userId = await refreshTokenUtils.revokeRefreshToken(refreshToken);
+
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+    });
+    if (!user) {
+        throw new Error("User not found");
+    }
+    const newRefreshToken = refreshTokenUtils.generateRefreshToken();
+    await refreshTokenUtils.saveRefreshToken(userId, newRefreshToken);
+
+    return {
+        accessToken: generateAccessToken({ sub: userId, email: user.email }),
+        refreshToken: newRefreshToken,
+    };
+}
+
+export async function logout(refreshToken: string) {
+    try {
+        await refreshTokenUtils.revokeRefreshToken(refreshToken);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 function _validateInput(email: string, password: string, name?: string | null | undefined, isRegister: boolean = false) {

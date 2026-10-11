@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { register, login } from "../services/auth.service.js";
+import { register, login, refresh, logout } from "../services/auth.service.js";
 
 export async function registerController(req: Request, res: Response) {
     try {
@@ -19,9 +19,27 @@ export async function loginController(req: Request, res: Response) {
     }
 }
 
+export async function refreshController(req: Request, res: Response) {
+    try {
+        const result = await refresh(req.body.refreshToken);
+        res.status(200).json(result);
+    } catch (error) {
+        handleError(error as Error, res);
+    }
+}
+
+export async function logoutController(req: Request, res: Response) {
+    try {
+        await logout(req.body.refreshToken);
+        res.status(204).send();
+    } catch (error) {
+        handleError(error as Error, res);
+    }
+}
+
 function handleError(error: Error, res: Response) {
     const message = (error as Error).message;
-    if (message === "Invalid credentials") return res.status(401).json({ error: message });
+    if (message === "Invalid credentials" || "Invalid refresh token") return res.status(401).json({ error: message });
     if (message === "Email already in use") return res.status(409).json({ error: message });
     if (message.startsWith("Invalid") || message.includes("required")) {
         return res.status(400).json({ error: message });

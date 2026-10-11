@@ -12,10 +12,14 @@ const jwtAccessSecret = process.env.JWT_ACCESS_SECRET;
 if (!jwtAccessSecret) {
     throw new Error("JWT_ACCESS_SECRET is not set");
 }
+
+const refreshTokenExpiresIn = process.env.REFRESH_TOKEN_EXPIRES_IN||"7d";
+
 export const env = {
     port,
     nodeEnv: process.env.NODE_ENV ?? "development",
     dbUrl,
     jwtAccessSecret,
-    jwtAccessExpiresIn: jwtAccessExpiresIn
+    jwtAccessExpiresIn: jwtAccessExpiresIn,
+    refreshTokenExpiresIn: refreshTokenExpiresIn
 };
