@@ -2,10 +2,18 @@ import { Workspace } from "@prisma/client";
 import { prisma } from "../lib/prisma.js";
 import { WorkspaceRole } from "@prisma/client";
 
-export async function createWorkspace(userId: string, input: { name: string, slug: string }) : Promise<Workspace> {
+export async function createWorkspace(userId: string, input: { name: string, slug: string }): Promise<Workspace> {
     try {
         const { name, slug } = input;
-       const workspace = await prisma.workspace.create({
+        const found = await prisma.workspace.findFirst({
+            where: {
+                slug,
+            }
+        });
+        if (found) {
+            throw new Error("Workspace with this slug already exists");
+        }
+        const workspace = await prisma.workspace.create({
             data: {
                 name,
                 slug,

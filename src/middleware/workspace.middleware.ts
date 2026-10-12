@@ -5,10 +5,9 @@ import { WorkspaceRole } from "@prisma/client";
 
 export function requireWorkspaceRole(requiredRole: WorkspaceRole) {
     return async function (req: Request, res: Response, next: NextFunction) {
-        if (req.method === "POST" && req.route.path === "/") return next();
         const { workspaceId } = req.params;
         if (typeof workspaceId !== "string" || isNullOrUndefinedOrEmpty(workspaceId)) {
-            return res.status(401).json({ message: "Invalid workspace id" });
+            return res.status(400).json({ message: "Invalid workspace id" });
         }
         const userId = req.user!.sub;
         const membership = await getMembership(workspaceId, userId);

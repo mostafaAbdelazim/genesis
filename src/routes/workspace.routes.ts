@@ -7,7 +7,7 @@ import { authMiddleware } from "../middleware/auth.middleware.js";
 const router = Router();
 router.use(authMiddleware);
 
-router.post("/", requireWorkspaceRole(WorkspaceRole.OWNER), createWorkspaceController);
+router.post("/", createWorkspaceController);
 router.get("/:workspaceId", requireWorkspaceRole(WorkspaceRole.MEMBER), getWorkspaceController);
 router.delete("/:workspaceId", requireWorkspaceRole(WorkspaceRole.OWNER), deleteWorkspaceController);
 

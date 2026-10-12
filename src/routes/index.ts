@@ -7,6 +7,6 @@ const router = Router();
 
 router.use("/health", healthRoutes);
 router.use("/auth", authRoutes);
-router.use("/workspace", workspaceRoutes);
+router.use("/workspaces", workspaceRoutes);
 
 export default router;
