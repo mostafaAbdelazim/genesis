@@ -1,7 +1,7 @@
 import { Router } from "express";
 import healthRoutes from "./health.routes.js";
 import authRoutes from "./auth.routes.js";
-import workspaceRoutes from "./workspace.routes.js";
+import workspaceRoutes from "./workspaces.routes.js";
 
 const router = Router();
 
