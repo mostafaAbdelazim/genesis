@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "mcp-video": {
+      "command": "uvx",
+      "args": ["--from", "kinocut", "mcp-video"]
+    },
+    "mcp-ffmpeg": {
+      "command": "npx",
+      "args": ["-y", "github:pauloFroes/mcp-ffmpeg"]
+    }
+  }
+}
