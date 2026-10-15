@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "ffmpeg": {
+      "source": "n0an/ffmpeg-skill",
+      "sourceType": "github",
+      "skillPath": "ffmpeg/SKILL.md",
+      "computedHash": "378770bfdbcb79aa411846d6c911b1a2b86c1e27f319cc158661c2c127e37621"
+    },
+    "video-edit-cli": {
+      "source": "computerlovetech/video-edit-cli",
+      "sourceType": "github",
+      "skillPath": "skills/video-edit-cli/SKILL.md",
+      "computedHash": "34cb2c59f69d17aa514efa07957c4953fc2b43dda2c3aed2b255573fa70788d1"
+    }
+  }
+}
