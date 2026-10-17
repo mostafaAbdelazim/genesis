@@ -3,9 +3,12 @@ import bcrypt from "bcryptjs";
 const ROUNDS = 12;
 
 export async function hashPassword(plainPassword: string): Promise<string> {
-    return bcrypt.hash(plainPassword, ROUNDS);
+  return bcrypt.hash(plainPassword, ROUNDS);
 }
 
-export async function verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
-    return bcrypt.compare(plainPassword, hashedPassword);
+export async function verifyPassword(
+  plainPassword: string,
+  hashedPassword: string,
+): Promise<boolean> {
+  return bcrypt.compare(plainPassword, hashedPassword);
 }
