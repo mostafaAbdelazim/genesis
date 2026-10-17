@@ -83,7 +83,7 @@ export async function updateTaskController(req: Request, res: Response) {
       .status((error.cause as { code: number })?.code ?? 500)
       .json({ error: error.message });
   }
-  const { title, description, assigneeId } = req.body;
+  const { title, description, assigneeId, status, priority } = req.body;
   if (isNullOrUndefinedOrEmpty(title)) {
     return res.status(400).json({ error: "Invalid title" });
   }
@@ -92,7 +92,13 @@ export async function updateTaskController(req: Request, res: Response) {
   }
 
   try {
-    const task = await updateTask(projectId, taskId, { title, description, assigneeId });
+    const task = await updateTask(projectId, taskId, {
+      title,
+      description,
+      assigneeId,
+      status,
+      priority,
+    });
     res.status(200).json(task);
   } catch (error) {
     if (error instanceof HttpError) {
