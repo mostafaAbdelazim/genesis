@@ -8,9 +8,7 @@ export async function createTask(
 ) {
   return prisma.task.create({
     data: {
-      title: input.title,
-      description: input.description,
-      assigneeId: input.assignedId,
+      ...input,
       projectId,
     },
   });
@@ -25,7 +23,7 @@ export async function getTasks(projectId: string) {
   return tasks;
 }
 
-export async function getTask(id: string, projectId: string) {
+export async function getTask(projectId: string, id: string) {
   const task = await prisma.task.findFirst({
     where: { id: id, projectId: projectId },
   });
@@ -36,12 +34,12 @@ export async function getTask(id: string, projectId: string) {
 }
 
 export async function updateTask(
-  id: string,
   projectId: string,
+  id: string,
   data: {
     title?: string;
     description?: string;
-    assignedId?: string;
+    assigneeId?: string;
     status?: Prisma.TaskUpdateInput["status"];
     priority?: Prisma.TaskUpdateInput["priority"];
   },
@@ -56,7 +54,7 @@ export async function updateTask(
   return result[0];
 }
 
-export async function deleteTask(id: string, projectId: string) {
+export async function deleteTask(projectId: string, id: string) {
   const result = await prisma.task.deleteMany({
     where: { id: id, projectId: projectId },
   });
