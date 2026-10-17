@@ -10,7 +10,8 @@
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "test": "tsx --test src/tests/health.test.ts"
   },
   "keywords": [
     "nodejs",
@@ -38,7 +39,9 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.10.0",
+    "@types/supertest": "^7.2.1",
     "prisma": "^6.19.3",
+    "supertest": "^7.3.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   }

@@ -4,7 +4,7 @@ import { HttpError } from "../utils/http_error.js";
 
 export async function createTask(
   projectId: string,
-  input: { title: string; description?: string; assignedId?: string },
+  input: { title: string; description?: string; assigneeId?: string },
 ) {
   return prisma.task.create({
     data: {

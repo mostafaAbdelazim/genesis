@@ -18,15 +18,15 @@ export async function createTaskController(req: Request, res: Response) {
       .status((error.cause as { code: number })?.code ?? 500)
       .json({ error: error.message });
   }
-  const { title, description, assignedId } = req.body;
+  const { title, description, assigneeId } = req.body;
   if (
     isNullOrUndefinedOrEmpty(title) ||
-    (assignedId !== null && isNullOrUndefinedOrEmpty(assignedId))
+    (assigneeId != null && isNullOrUndefinedOrEmpty(assigneeId))
   ) {
-    return res.status(400).json({ error: "Invalid title or assigned id" });
+    return res.status(400).json({ error: "Invalid title or assignee id" });
   }
   try {
-    const task = await createTask(projectId, { title, description, assignedId });
+    const task = await createTask(projectId, { title, description, assigneeId });
     res.status(201).json(task);
   } catch (error) {
     if (error instanceof HttpError) {
@@ -87,7 +87,7 @@ export async function updateTaskController(req: Request, res: Response) {
   if (isNullOrUndefinedOrEmpty(title)) {
     return res.status(400).json({ error: "Invalid title" });
   }
-  if (assigneeId !== null && assigneeId.trim() === "") {
+  if (assigneeId != null && assigneeId.trim() === "") {
     return res.status(400).json({ error: "Invalid assigneeId" });
   }
 
