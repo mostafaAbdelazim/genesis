@@ -24,13 +24,7 @@ export async function getTasks(projectId: string) {
 }
 
 export async function getTask(projectId: string, id: string) {
-  const task = await prisma.task.findFirst({
-    where: { id: id, projectId: projectId },
-  });
-  if (task === null) {
-    throw new HttpError("Task not found", 404);
-  }
-  return task;
+  return await prisma.task.findFirst({ where: { id: id, projectId: projectId } });
 }
 
 export async function updateTask(

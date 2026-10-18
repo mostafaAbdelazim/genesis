@@ -14,7 +14,7 @@ export async function createCommentController(req: Request, res: Response) {
   };
   const error = await ensureWorkspaceProjectTaskExists(workspaceId, projectId, taskId);
   if (error) {
-    return res.status((error.cause as { code: number }).code ?? 500).json({ error: error.message });
+    return res.status(error.status ?? 500).json({ error: error.message });
   }
   const { body } = req.body as { body: string };
   if (isNullOrUndefinedOrEmpty(body)) {
@@ -40,7 +40,7 @@ export async function getCommentsController(req: Request, res: Response) {
   };
   const error = await ensureWorkspaceProjectTaskExists(workspaceId, projectId, taskId);
   if (error) {
-    return res.status((error.cause as { code: number }).code ?? 500).json({ error: error.message });
+    return res.status(error.status ?? 500).json({ error: error.message });
   }
   try {
     const comments = (await getComments(taskId)) ?? ([] as Comment[]);
@@ -61,7 +61,7 @@ export async function deleteCommentController(req: Request, res: Response) {
   };
   const error = await ensureWorkspaceProjectTaskExists(workspaceId, projectId, taskId);
   if (error) {
-    return res.status((error.cause as { code: number }).code ?? 500).json({ error: error.message });
+    return res.status(error.status ?? 500).json({ error: error.message });
   }
   const { commentId } = req.params as { commentId: string };
   if (isNullOrUndefinedOrEmpty(commentId)) {
@@ -69,7 +69,7 @@ export async function deleteCommentController(req: Request, res: Response) {
   }
   const userId = req.user!.sub;
   try {
-    await deleteComment(taskId, commentId, userId);
+    await deleteComment(taskId, commentId, userId, workspaceId);
     res.status(204).send();
   } catch (error) {
     if (error instanceof HttpError) {
@@ -83,31 +83,30 @@ async function ensureWorkspaceProjectTaskExists(
   workspaceId: string,
   projectId: string,
   taskId: string,
-): Promise<Error | null> {
+): Promise<HttpError | null> {
   if (isNullOrUndefinedOrEmpty(workspaceId)) {
-    return Error("Invalid workspace id", { cause: { code: 400 } });
+    return new HttpError("Invalid workspace id", 400);
   }
   if (isNullOrUndefinedOrEmpty(projectId)) {
-    return Error("Invalid project id", { cause: { code: 400 } });
+    return new HttpError("Invalid project id", 400);
   }
   if (isNullOrUndefinedOrEmpty(taskId)) {
-    return Error("Invalid task id", { cause: { code: 400 } });
+    return new HttpError("Invalid task id", 400);
   }
 
   const workspace = await getWorkspace(workspaceId);
   if (!workspace) {
-    return Error("Workspace not found", { cause: { code: 404 } });
+    return new HttpError("Workspace not found", 404);
   }
 
   const project = await getProject(projectId, workspaceId);
   if (!project) {
-    return Error("Project not found", { cause: { code: 404 } });
+    return new HttpError("Project not found", 404);
   }
 
   const task = await getTask(projectId, taskId);
   if (!task) {
-    return Error("Task not found", { cause: { code: 404 } });
+    return new HttpError("Task not found", 404);
   }
-
   return null;
 }

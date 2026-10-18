@@ -40,9 +40,7 @@ export async function getTasksController(req: Request, res: Response) {
   const { projectId, workspaceId } = req.params as { projectId: string; workspaceId: string };
   const error = await ensureProjectExists(projectId, workspaceId);
   if (error) {
-    return res
-      .status((error.cause as { code: number })?.code ?? 500)
-      .json({ error: error.message });
+    return res.status(error.status ?? 500).json({ error: error.message });
   }
   const tasks = await getTasks(projectId);
   res.status(200).json(tasks);
@@ -56,12 +54,13 @@ export async function getTaskController(req: Request, res: Response) {
   };
   const error = await ensureProjectExists(projectId, workspaceId);
   if (error) {
-    return res
-      .status((error.cause as { code: number })?.code ?? 500)
-      .json({ error: error.message });
+    return res.status(error.status ?? 500).json({ error: error.message });
   }
   try {
     const task = await getTask(projectId, taskId);
+    if (!task) {
+      return res.status(404).json({ error: "Task not found" });
+    }
     res.status(200).json(task);
   } catch (error) {
     if (error instanceof HttpError) {
@@ -79,9 +78,7 @@ export async function updateTaskController(req: Request, res: Response) {
   };
   const error = await ensureProjectExists(projectId, workspaceId);
   if (error) {
-    return res
-      .status((error.cause as { code: number })?.code ?? 500)
-      .json({ error: error.message });
+    return res.status(error.status ?? 500).json({ error: error.message });
   }
   const { title, description, assigneeId, status, priority } = req.body;
   if (isNullOrUndefinedOrEmpty(title)) {
@@ -116,9 +113,7 @@ export async function deleteTaskController(req: Request, res: Response) {
   };
   const error = await ensureProjectExists(projectId, workspaceId);
   if (error) {
-    return res
-      .status((error.cause as { code: number })?.code ?? 500)
-      .json({ error: error.message });
+    return res.status(error.status ?? 500).json({ error: error.message });
   }
   try {
     await deleteTask(projectId, taskId);
@@ -131,13 +126,16 @@ export async function deleteTaskController(req: Request, res: Response) {
   }
 }
 
-async function ensureProjectExists(projectId: string, workspaceId: string): Promise<Error | null> {
+async function ensureProjectExists(
+  projectId: string,
+  workspaceId: string,
+): Promise<HttpError | null> {
   if (isNullOrUndefinedOrEmpty(projectId) || isNullOrUndefinedOrEmpty(workspaceId)) {
-    return Error("Invalid project or workspace id", { cause: { code: 400 } });
+    return new HttpError("Invalid project or workspace id", 400);
   }
   const project = await getProject(projectId, workspaceId);
   if (!project) {
-    return Error("Project not found", { cause: { code: 404 } });
+    return new HttpError("Project not found", 404);
   }
   return null;
 }
