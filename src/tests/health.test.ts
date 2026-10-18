@@ -15,6 +15,7 @@ describe("api flow", () => {
     userId: "",
     workspaceId: "",
     projectId: "",
+    taskId: "",
   };
 
   after(async () => {
@@ -27,7 +28,7 @@ describe("api flow", () => {
     await prisma.$disconnect();
   });
 
-  it("runs health, auth, workspace, project, and task routes", async (t: TestContext) => {
+  it("runs health, auth, workspace, project, task, and comment routes", async (t: TestContext) => {
     await runHealthTests(t);
     await runAuthTests(t, ctx);
   });

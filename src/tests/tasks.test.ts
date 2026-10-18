@@ -3,10 +3,10 @@ import type { TestContext } from "node:test";
 import request from "supertest";
 import app from "../app.js";
 import type { FlowContext } from "./context.js";
+import { runCommentTests } from "./comments.test.js";
 
 export async function runTaskTests(t: TestContext, ctx: FlowContext) {
   const base = `/api/v1/workspaces/${ctx.workspaceId}/projects/${ctx.projectId}/tasks`;
-  let taskId = "";
 
   await t.test("creates a task", async () => {
     const created = await request(app)
@@ -17,27 +17,27 @@ export async function runTaskTests(t: TestContext, ctx: FlowContext) {
     assert.equal(created.body.title, "Write spec");
     assert.equal(created.body.status, "TODO");
     assert.equal(created.body.priority, "MEDIUM");
-    taskId = created.body.id;
+    ctx.taskId = created.body.id;
   });
 
   await t.test("lists tasks", async () => {
     const listed = await request(app).get(base).set("Authorization", `Bearer ${ctx.token}`);
     assert.equal(listed.status, 200);
     assert.equal(listed.body.length, 1);
-    assert.equal(listed.body[0].id, taskId);
+    assert.equal(listed.body[0].id, ctx.taskId);
   });
 
   await t.test("gets a task", async () => {
     const fetched = await request(app)
-      .get(`${base}/${taskId}`)
+      .get(`${base}/${ctx.taskId}`)
       .set("Authorization", `Bearer ${ctx.token}`);
     assert.equal(fetched.status, 200);
-    assert.equal(fetched.body.id, taskId);
+    assert.equal(fetched.body.id, ctx.taskId);
   });
 
   await t.test("updates a task", async () => {
     const updated = await request(app)
-      .put(`${base}/${taskId}`)
+      .put(`${base}/${ctx.taskId}`)
       .set("Authorization", `Bearer ${ctx.token}`)
       .send({
         title: "Write spec",
@@ -51,14 +51,16 @@ export async function runTaskTests(t: TestContext, ctx: FlowContext) {
     assert.equal(updated.body.priority, "HIGH");
   });
 
+  await runCommentTests(t, ctx);
+
   await t.test("deletes a task", async () => {
     const deleted = await request(app)
-      .delete(`${base}/${taskId}`)
+      .delete(`${base}/${ctx.taskId}`)
       .set("Authorization", `Bearer ${ctx.token}`);
     assert.equal(deleted.status, 204);
 
     const missing = await request(app)
-      .get(`${base}/${taskId}`)
+      .get(`${base}/${ctx.taskId}`)
       .set("Authorization", `Bearer ${ctx.token}`);
     assert.equal(missing.status, 404);
     assert.equal(missing.body.error, "Task not found");

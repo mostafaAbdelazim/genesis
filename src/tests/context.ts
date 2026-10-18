@@ -5,4 +5,5 @@ export type FlowContext = {
   userId: string;
   workspaceId: string;
   projectId: string;
+  taskId: string;
 };
