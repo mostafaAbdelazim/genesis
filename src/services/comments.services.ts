@@ -30,7 +30,7 @@ export async function deleteComment(
   userId: string,
   workspaceId: string,
 ) {
-  const comment = await prisma.comment.findUnique({ where: { id, taskId } });
+  const comment = await prisma.comment.findFirst({ where: { id, taskId } });
   if (!comment) {
     throw new HttpError("Comment not found", 404);
   }
