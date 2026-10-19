@@ -1,6 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { Project } from "@prisma/client";
-
+import { AppError } from "../utils/AppError.js";
 export async function createProject(
   name: string,
   description: string | undefined,
@@ -16,7 +16,7 @@ export async function createProject(
     });
     return project;
   } catch (error) {
-    throw new Error("Failed to create project");
+    throw new AppError("Failed to create project", 500);
   }
 }
 
@@ -32,7 +32,7 @@ export async function getProjects(workspaceId: string): Promise<Project[]> {
     });
     return projects;
   } catch (error) {
-    throw new Error("Failed to get projects");
+    throw new AppError("Failed to get projects", 500);
   }
 }
 
@@ -46,7 +46,7 @@ export async function getProject(projectId: string, workspaceId: string): Promis
     });
     return project;
   } catch (error) {
-    throw new Error("Failed to get project");
+    throw new AppError("Failed to get project", 500);
   }
 }
 
@@ -60,6 +60,6 @@ export async function deleteProject(projectId: string, workspaceId: string): Pro
     });
     return result.count;
   } catch (error) {
-    throw new Error("Failed to delete project");
+    throw new AppError("Failed to delete project", 500);
   }
 }

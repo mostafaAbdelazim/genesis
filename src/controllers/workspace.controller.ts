@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { createWorkspace, getWorkspace, deleteWorkspace } from "../services/workspace.service.js";
 import { isNullOrUndefinedOrEmpty } from "../utils/input_validator.js";
+import { AppError } from "../utils/AppError.js";
 
 export async function createWorkspaceController(req: Request, res: Response) {
   try {
@@ -11,7 +12,8 @@ export async function createWorkspaceController(req: Request, res: Response) {
       typeof slug !== "string" ||
       isNullOrUndefinedOrEmpty(slug)
     ) {
-      return res.status(401).json({ message: "Invalid name or slug" });
+      console.error(name, slug);
+      throw new AppError("Invalid name or slug", 401);
     }
     const userId = req.user!.sub;
     const workspace = await createWorkspace(userId, { name, slug });
@@ -20,8 +22,7 @@ export async function createWorkspaceController(req: Request, res: Response) {
       workspace: workspace,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: (error as Error).message });
+    throw toAppError(error);
   }
 }
 
@@ -31,8 +32,7 @@ export async function getWorkspaceController(req: Request, res: Response) {
     const workspace = await getWorkspace(workspaceId);
     res.status(200).json(workspace);
   } catch (error) {
-    console.error(error);
-    res.status(404).json({ message: (error as Error).message });
+    throw toAppError(error);
   }
 }
 
@@ -42,7 +42,13 @@ export async function deleteWorkspaceController(req: Request, res: Response) {
     await deleteWorkspace(workspaceId);
     res.status(200).json({ message: "Workspace deleted successfully" });
   } catch (error) {
-    console.error(error);
-    res.status(404).json({ message: (error as Error).message });
+    throw toAppError(error);
   }
+}
+
+function toAppError(error: unknown): AppError {
+  if (error instanceof AppError) {
+    return error;
+  }
+  return new AppError("Internal server error", 500);
 }

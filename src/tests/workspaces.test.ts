@@ -21,7 +21,7 @@ export async function runWorkspaceTests(t: TestContext, ctx: FlowContext) {
       .set("Authorization", `Bearer ${ctx.token}`)
       .send({ name: "", slug });
     assert.equal(invalid.status, 401);
-    assert.equal(invalid.body.message, "Invalid name or slug");
+    assert.equal(invalid.body.error, "Invalid name or slug");
   });
 
   await t.test("creates and reads a workspace", async () => {
@@ -60,7 +60,7 @@ export async function runWorkspaceTests(t: TestContext, ctx: FlowContext) {
       .get(`/api/v1/workspaces/${ctx.workspaceId}`)
       .set("Authorization", `Bearer ${ctx.token}`);
     assert.equal(missing.status, 404);
-    assert.equal(missing.body.message, "Workspace not found");
+    assert.equal(missing.body.error, "Workspace not found");
     ctx.workspaceId = "";
   });
 }

@@ -1,14 +1,18 @@
 import { Request, Response } from "express";
 import { me } from "../services/me.service.js";
+import { AppError } from "../utils/AppError.js";
 
 export async function meController(req: Request, res: Response) {
   try {
     const result = await me(req.user!.sub);
     if (!result) {
-      return res.status(404).json({ error: "User not found" });
+      throw new AppError("User not found", 404);
     }
     res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError("Internal server error", 500);
   }
 }

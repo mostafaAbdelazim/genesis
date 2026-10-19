@@ -2,6 +2,7 @@ import { hashPassword, verifyPassword } from "../utils/password.js";
 import { generateAccessToken } from "../utils/tokens.js";
 import refreshTokenUtils from "../utils/refresh-token.js";
 import { prisma } from "../lib/prisma.js";
+import { AppError } from "../utils/AppError.js";
 import {
   isValidEmail,
   isValidPassword,
@@ -16,7 +17,7 @@ export async function register(email: string, password: string, name: string) {
   });
 
   if (existingUser) {
-    throw new Error("Email already in use");
+    throw new AppError("Email already in use", 400);
   }
 
   const hashedPassword = await hashPassword(password);
@@ -48,11 +49,11 @@ export async function login(email: string, password: string) {
     where: { email },
   });
   if (!user) {
-    throw new Error("Invalid credentials");
+    throw new AppError("Invalid credentials", 401);
   }
   const isPasswordValid = await verifyPassword(password, user.passwordHash);
   if (!isPasswordValid) {
-    throw new Error("Invalid credentials");
+    throw new AppError("Invalid credentials", 401);
   }
 
   const refreshToken = refreshTokenUtils.generateRefreshToken();
@@ -77,7 +78,7 @@ export async function refresh(refreshToken: string) {
     where: { id: userId },
   });
   if (!user) {
-    throw new Error("User not found");
+    throw new AppError("User not found", 404);
   }
   const newRefreshToken = refreshTokenUtils.generateRefreshToken();
   await refreshTokenUtils.saveRefreshToken(userId, newRefreshToken);
@@ -103,20 +104,21 @@ function _validateInput(
   isRegister: boolean = false,
 ) {
   if (isNullOrUndefinedOrEmpty(email)) {
-    throw new Error("Email is required and cannot be empty");
+    throw new AppError("Email is required and cannot be empty", 400);
   }
   if (isNullOrUndefinedOrEmpty(password)) {
-    throw new Error("Password is required and cannot be empty");
+    throw new AppError("Password is required and cannot be empty", 400);
   }
   if (isRegister && isNullOrUndefinedOrEmpty(name)) {
-    throw new Error("Name is required and cannot be empty");
+    throw new AppError("Name is required and cannot be empty", 400);
   }
   if (!isValidEmail(email)) {
-    throw new Error("Invalid email");
+    throw new AppError("Invalid email", 400);
   }
   if (isRegister && !isValidPassword(password)) {
-    throw new Error(
+    throw new AppError(
       "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+      400,
     );
   }
 }

@@ -1,7 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { Prisma } from "@prisma/client";
-import { HttpError } from "../utils/http_error.js";
-
+import { AppError } from "../utils/AppError.js";
 export async function createTask(
   projectId: string,
   input: { title: string; description?: string; assigneeId?: string },
@@ -43,7 +42,7 @@ export async function updateTask(
     data,
   });
   if (result.length === 0) {
-    throw new HttpError("Task not found", 404);
+    throw new AppError("Task not found", 404);
   }
   return result[0];
 }
@@ -53,6 +52,6 @@ export async function deleteTask(projectId: string, id: string) {
     where: { id: id, projectId: projectId },
   });
   if (result.count === 0) {
-    throw new HttpError("Task not found", 404);
+    throw new AppError("Task not found", 404);
   }
 }

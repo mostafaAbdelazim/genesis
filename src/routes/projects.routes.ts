@@ -9,15 +9,24 @@ import {
   deleteProjectController,
 } from "../controllers/projects.controller.js";
 import tasksRoutes from "./tasks.routes.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = Router({ mergeParams: true });
 
 router.use(authMiddleware);
 
-router.post("/", requireWorkspaceRole(WorkspaceRole.MEMBER), createProjectController);
-router.get("/", requireWorkspaceRole(WorkspaceRole.MEMBER), getProjectsController);
-router.get("/:projectId", requireWorkspaceRole(WorkspaceRole.MEMBER), getProjectController);
-router.delete("/:projectId", requireWorkspaceRole(WorkspaceRole.MEMBER), deleteProjectController);
+router.post("/", requireWorkspaceRole(WorkspaceRole.MEMBER), asyncHandler(createProjectController));
+router.get("/", requireWorkspaceRole(WorkspaceRole.MEMBER), asyncHandler(getProjectsController));
+router.get(
+  "/:projectId",
+  requireWorkspaceRole(WorkspaceRole.MEMBER),
+  asyncHandler(getProjectController),
+);
+router.delete(
+  "/:projectId",
+  requireWorkspaceRole(WorkspaceRole.MEMBER),
+  asyncHandler(deleteProjectController),
+);
 
 router.use("/:projectId/tasks", tasksRoutes);
 

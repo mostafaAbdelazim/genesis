@@ -1,6 +1,7 @@
 import { Workspace } from "@prisma/client";
 import { prisma } from "../lib/prisma.js";
 import { WorkspaceRole } from "@prisma/client";
+import { AppError } from "../utils/AppError.js";
 
 export async function createWorkspace(
   userId: string,
@@ -14,7 +15,7 @@ export async function createWorkspace(
       },
     });
     if (found) {
-      throw new Error("Workspace with this slug already exists");
+      throw new AppError("Workspace with this slug already exists", 400);
     }
     const workspace = await prisma.workspace.create({
       data: {
@@ -31,7 +32,7 @@ export async function createWorkspace(
     return workspace;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed to create workspace");
+    throw new AppError("Failed to create workspace", 500);
   }
 }
 
@@ -45,7 +46,7 @@ export async function getWorkspace(workspaceId: string): Promise<Workspace | nul
     return workspace;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed to get workspace");
+    throw new AppError("Failed to get workspace", 500);
   }
 }
 
@@ -56,6 +57,6 @@ export async function deleteWorkspace(workspaceId: string) {
     });
   } catch (error) {
     console.error(error);
-    throw new Error("Failed to delete workspace");
+    throw new AppError("Failed to delete workspace", 500);
   }
 }

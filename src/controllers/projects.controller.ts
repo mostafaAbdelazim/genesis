@@ -5,18 +5,19 @@ import {
   getProject,
   deleteProject,
 } from "../services/project.service.js";
+import { AppError } from "../utils/AppError.js";
 
 export async function createProjectController(req: Request, res: Response) {
   try {
     const { name, description } = req.body;
     const workspaceId = req.params.workspaceId as string;
     if (!name) {
-      return res.status(400).json({ error: "Project name is required" });
+      throw new AppError("Project name is required", 400);
     }
     const project = await createProject(name, description, workspaceId);
     res.status(201).json(project);
   } catch (error) {
-    res.status(500).json({ error: "Failed to create project" });
+    throw toAppError(error);
   }
 }
 
@@ -26,7 +27,7 @@ export async function getProjectsController(req: Request, res: Response) {
     const projects = await getProjects(workspaceId);
     res.status(200).json(projects);
   } catch (error) {
-    res.status(500).json({ error: "Failed to get projects" });
+    throw toAppError(error);
   }
 }
 
@@ -35,10 +36,10 @@ export async function getProjectController(req: Request, res: Response) {
     const projectId = req.params.projectId as string;
     const workspaceId = req.params.workspaceId as string;
     const project = await getProject(projectId, workspaceId);
-    if (!project) return res.status(404).json({ error: "Project not found" });
+    if (!project) throw new AppError("Project not found", 404);
     res.status(200).json(project);
   } catch (error) {
-    res.status(500).json({ error: "Failed to get project" });
+    throw toAppError(error);
   }
 }
 
@@ -47,9 +48,16 @@ export async function deleteProjectController(req: Request, res: Response) {
     const projectId = req.params.projectId as string;
     const workspaceId = req.params.workspaceId as string;
     const count = await deleteProject(projectId, workspaceId);
-    if (count === 0) return res.status(404).json({ error: "Project not found" });
+    if (count === 0) throw new AppError("Project not found", 404);
     res.status(200).json({ message: "Project deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: "Failed to delete project" });
+    throw toAppError(error);
   }
+}
+
+function toAppError(error: unknown): AppError {
+  if (error instanceof AppError) {
+    return error;
+  }
+  return new AppError("Internal server error", 500);
 }

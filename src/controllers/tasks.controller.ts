@@ -8,42 +8,35 @@ import {
   deleteTask,
 } from "../services/tasks.service.js";
 import { isNullOrUndefinedOrEmpty } from "../utils/input_validator.js";
-import { HttpError } from "../utils/http_error.js";
+import { AppError } from "../utils/AppError.js";
 
 export async function createTaskController(req: Request, res: Response) {
   const { projectId, workspaceId } = req.params as { projectId: string; workspaceId: string };
-  const error = await ensureProjectExists(projectId, workspaceId);
-  if (error) {
-    return res
-      .status((error.cause as { code: number })?.code ?? 500)
-      .json({ error: error.message });
-  }
+  await ensureProjectExists(projectId, workspaceId);
   const { title, description, assigneeId } = req.body;
   if (
     isNullOrUndefinedOrEmpty(title) ||
     (assigneeId != null && isNullOrUndefinedOrEmpty(assigneeId))
   ) {
-    return res.status(400).json({ error: "Invalid title or assignee id" });
+    throw new AppError("Invalid title or assignee id", 400);
   }
   try {
     const task = await createTask(projectId, { title, description, assigneeId });
     res.status(201).json(task);
   } catch (error) {
-    if (error instanceof HttpError) {
-      return res.status(error.status).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Failed to create task" });
+    throw toAppError(error);
   }
 }
 
 export async function getTasksController(req: Request, res: Response) {
-  const { projectId, workspaceId } = req.params as { projectId: string; workspaceId: string };
-  const error = await ensureProjectExists(projectId, workspaceId);
-  if (error) {
-    return res.status(error.status ?? 500).json({ error: error.message });
+  try {
+    const { projectId, workspaceId } = req.params as { projectId: string; workspaceId: string };
+    await ensureProjectExists(projectId, workspaceId);
+    const tasks = await getTasks(projectId);
+    res.status(200).json(tasks);
+  } catch (error) {
+    throw toAppError(error);
   }
-  const tasks = await getTasks(projectId);
-  res.status(200).json(tasks);
 }
 
 export async function getTaskController(req: Request, res: Response) {
@@ -52,21 +45,15 @@ export async function getTaskController(req: Request, res: Response) {
     workspaceId: string;
     taskId: string;
   };
-  const error = await ensureProjectExists(projectId, workspaceId);
-  if (error) {
-    return res.status(error.status ?? 500).json({ error: error.message });
-  }
   try {
+    await ensureProjectExists(projectId, workspaceId);
     const task = await getTask(projectId, taskId);
     if (!task) {
-      return res.status(404).json({ error: "Task not found" });
+      throw new AppError("Task not found", 404);
     }
     res.status(200).json(task);
   } catch (error) {
-    if (error instanceof HttpError) {
-      return res.status(error.status).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Failed to get task" });
+    throw toAppError(error);
   }
 }
 
@@ -76,19 +63,16 @@ export async function updateTaskController(req: Request, res: Response) {
     workspaceId: string;
     taskId: string;
   };
-  const error = await ensureProjectExists(projectId, workspaceId);
-  if (error) {
-    return res.status(error.status ?? 500).json({ error: error.message });
-  }
-  const { title, description, assigneeId, status, priority } = req.body;
-  if (isNullOrUndefinedOrEmpty(title)) {
-    return res.status(400).json({ error: "Invalid title" });
-  }
-  if (assigneeId != null && assigneeId.trim() === "") {
-    return res.status(400).json({ error: "Invalid assigneeId" });
-  }
-
   try {
+    await ensureProjectExists(projectId, workspaceId);
+    const { title, description, assigneeId, status, priority } = req.body;
+    if (isNullOrUndefinedOrEmpty(title)) {
+      throw new AppError("Invalid title", 400);
+    }
+    if (assigneeId != null && assigneeId.trim() === "") {
+      throw new AppError("Invalid assigneeId", 400);
+    }
+
     const task = await updateTask(projectId, taskId, {
       title,
       description,
@@ -98,10 +82,7 @@ export async function updateTaskController(req: Request, res: Response) {
     });
     res.status(200).json(task);
   } catch (error) {
-    if (error instanceof HttpError) {
-      return res.status(error.status).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Failed to update task" });
+    throw toAppError(error);
   }
 }
 
@@ -111,31 +92,29 @@ export async function deleteTaskController(req: Request, res: Response) {
     workspaceId: string;
     taskId: string;
   };
-  const error = await ensureProjectExists(projectId, workspaceId);
-  if (error) {
-    return res.status(error.status ?? 500).json({ error: error.message });
-  }
   try {
+    await ensureProjectExists(projectId, workspaceId);
+
     await deleteTask(projectId, taskId);
     res.status(204).send();
   } catch (error) {
-    if (error instanceof HttpError) {
-      return res.status(error.status).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Failed to delete task" });
+    throw toAppError(error);
   }
 }
 
-async function ensureProjectExists(
-  projectId: string,
-  workspaceId: string,
-): Promise<HttpError | null> {
+async function ensureProjectExists(projectId: string, workspaceId: string) {
   if (isNullOrUndefinedOrEmpty(projectId) || isNullOrUndefinedOrEmpty(workspaceId)) {
-    return new HttpError("Invalid project or workspace id", 400);
+    throw new AppError("Invalid project or workspace id", 400);
   }
   const project = await getProject(projectId, workspaceId);
   if (!project) {
-    return new HttpError("Project not found", 404);
+    throw new AppError("Project not found", 404);
   }
-  return null;
+}
+
+function toAppError(error: unknown): AppError {
+  if (error instanceof AppError) {
+    return error;
+  }
+  return new AppError("Internal server error", 500);
 }

@@ -1,6 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { Membership } from "@prisma/client";
-
+import { AppError } from "../utils/AppError.js";
 export async function getMembership(
   workspaceId: string,
   userId: string,
@@ -14,6 +14,6 @@ export async function getMembership(
     return membership;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed to get membership");
+    throw new AppError("Failed to get membership", 500);
   }
 }

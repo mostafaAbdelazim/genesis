@@ -1,7 +1,7 @@
 import { prisma } from "../lib/prisma.js";
-import { HttpError } from "../utils/http_error.js";
 import { WorkspaceRoleRank } from "../utils/workspace.role.rank.js";
 import { WorkspaceRole } from "@prisma/client";
+import { AppError } from "../utils/AppError.js";
 
 export async function createComment(taskId: string, authorId: string, body: string) {
   return prisma.comment.create({
@@ -32,21 +32,21 @@ export async function deleteComment(
 ) {
   const comment = await prisma.comment.findFirst({ where: { id, taskId } });
   if (!comment) {
-    throw new HttpError("Comment not found", 404);
+    throw new AppError("Comment not found", 404);
   }
   const membership = await prisma.membership.findUnique({
     where: { userId_workspaceId: { userId, workspaceId } },
   });
   if (!membership) {
-    throw new HttpError("You are not a member of this workspace", 403);
+    throw new AppError("You are not a member of this workspace", 403);
   }
   const isAuthor = comment.authorId === userId;
   const canModerate = WorkspaceRoleRank[membership.role] >= WorkspaceRoleRank[WorkspaceRole.ADMIN];
   if (!isAuthor && !canModerate) {
-    throw new HttpError("You are not the author of this comment", 403);
+    throw new AppError("You are not the author of this comment", 403);
   }
   const count = await prisma.comment.deleteMany({ where: { id, taskId } });
   if (count.count === 0) {
-    throw new HttpError("Comment not found", 404);
+    throw new AppError("Comment not found", 404);
   }
 }
