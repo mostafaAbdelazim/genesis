@@ -11,7 +11,7 @@
     "db:down": "docker compose down",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "test": "tsx --test src/tests/health.test.ts"
+    "test": "tsx --test src/tests/health.test.ts src/tests/schemas.test.ts"
   },
   "keywords": [
     "nodejs",

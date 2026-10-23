@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import type { TestContext } from "node:test";
 import request from "supertest";
 import app from "../app.js";
+import { assertValidationError } from "./assertValidationError.js";
 import type { FlowContext } from "./context.js";
 import { runTaskTests } from "./tasks.test.js";
 
@@ -18,8 +19,15 @@ export async function runProjectTests(t: TestContext, ctx: FlowContext) {
       .post(base)
       .set("Authorization", `Bearer ${ctx.token}`)
       .send({ description: "missing name" });
-    assert.equal(invalid.status, 400);
-    assert.equal(invalid.body.error, "Project name is required");
+    assertValidationError(invalid, "Invalid input: expected string, received undefined");
+  });
+
+  await t.test("rejects a short project name", async () => {
+    const invalid = await request(app)
+      .post(base)
+      .set("Authorization", `Bearer ${ctx.token}`)
+      .send({ name: "Bo" });
+    assertValidationError(invalid, "Name must be at least 3 characters long");
   });
 
   await t.test("creates, lists, reads, and deletes a project", async () => {

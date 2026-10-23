@@ -3,15 +3,8 @@ import { generateAccessToken } from "../utils/tokens.js";
 import refreshTokenUtils from "../utils/refresh-token.js";
 import { prisma } from "../lib/prisma.js";
 import { AppError } from "../utils/AppError.js";
-import {
-  isValidEmail,
-  isValidPassword,
-  isNullOrUndefinedOrEmpty,
-} from "../utils/input_validator.js";
 
 export async function register(email: string, password: string, name: string) {
-  _validateInput(email, password, name, true);
-
   const existingUser = await prisma.user.findUnique({
     where: { email },
   });
@@ -43,8 +36,6 @@ export async function register(email: string, password: string, name: string) {
   };
 }
 export async function login(email: string, password: string) {
-  _validateInput(email, password);
-
   const user = await prisma.user.findUnique({
     where: { email },
   });
@@ -94,31 +85,5 @@ export async function logout(refreshToken: string) {
     await refreshTokenUtils.revokeRefreshToken(refreshToken);
   } catch (error) {
     console.error(error);
-  }
-}
-
-function _validateInput(
-  email: string,
-  password: string,
-  name?: string | null | undefined,
-  isRegister: boolean = false,
-) {
-  if (isNullOrUndefinedOrEmpty(email)) {
-    throw new AppError("Email is required and cannot be empty", 400);
-  }
-  if (isNullOrUndefinedOrEmpty(password)) {
-    throw new AppError("Password is required and cannot be empty", 400);
-  }
-  if (isRegister && isNullOrUndefinedOrEmpty(name)) {
-    throw new AppError("Name is required and cannot be empty", 400);
-  }
-  if (!isValidEmail(email)) {
-    throw new AppError("Invalid email", 400);
-  }
-  if (isRegister && !isValidPassword(password)) {
-    throw new AppError(
-      "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
-      400,
-    );
   }
 }

@@ -1,25 +1,24 @@
 import { Request, Response } from "express";
 import { createComment, getComments, deleteComment } from "../services/comments.services.js";
 import { AppError } from "../utils/AppError.js";
-import { isNullOrUndefinedOrEmpty } from "../utils/input_validator.js";
 import { getTask } from "../services/tasks.service.js";
 import { getProject } from "../services/project.service.js";
 import { getWorkspace } from "../services/workspace.service.js";
 
 export async function createCommentController(req: Request, res: Response) {
-  const { workspaceId, projectId, taskId } = req.params as {
-    workspaceId: string;
-    projectId: string;
-    taskId: string;
-  };
-  await ensureWorkspaceProjectTaskExists(workspaceId, projectId, taskId);
-  const { body } = req.body as { body: string };
-  if (isNullOrUndefinedOrEmpty(body)) {
-    throw new AppError("Invalid body", 400);
-  }
-  const userId = req.user!.sub;
   try {
-    const comment = await createComment(taskId, userId, body);
+    const { workspaceId, projectId, taskId } = req.params as {
+      workspaceId: string;
+      projectId: string;
+      taskId: string;
+    };
+
+    await ensureWorkspaceProjectTaskExists(workspaceId, projectId, taskId);
+    const { content } = req.body as { content: string };
+
+    const userId = req.user!.sub;
+
+    const comment = await createComment(taskId, userId, content);
     res.status(201).json(comment);
   } catch (error) {
     throw toAppError(error);
@@ -27,13 +26,14 @@ export async function createCommentController(req: Request, res: Response) {
 }
 
 export async function getCommentsController(req: Request, res: Response) {
-  const { workspaceId, projectId, taskId } = req.params as {
-    workspaceId: string;
-    projectId: string;
-    taskId: string;
-  };
-  await ensureWorkspaceProjectTaskExists(workspaceId, projectId, taskId);
   try {
+    const { workspaceId, projectId, taskId } = req.params as {
+      workspaceId: string;
+      projectId: string;
+      taskId: string;
+    };
+    await ensureWorkspaceProjectTaskExists(workspaceId, projectId, taskId);
+
     const comments = (await getComments(taskId)) ?? ([] as Comment[]);
     res.status(200).json(comments);
   } catch (error) {
@@ -42,18 +42,15 @@ export async function getCommentsController(req: Request, res: Response) {
 }
 
 export async function deleteCommentController(req: Request, res: Response) {
-  const { workspaceId, projectId, taskId } = req.params as {
-    workspaceId: string;
-    projectId: string;
-    taskId: string;
-  };
-  await ensureWorkspaceProjectTaskExists(workspaceId, projectId, taskId);
-  const { commentId } = req.params as { commentId: string };
-  if (isNullOrUndefinedOrEmpty(commentId)) {
-    throw new AppError("Invalid comment id", 400);
-  }
-  const userId = req.user!.sub;
   try {
+    const { workspaceId, projectId, taskId } = req.params as {
+      workspaceId: string;
+      projectId: string;
+      taskId: string;
+    };
+    await ensureWorkspaceProjectTaskExists(workspaceId, projectId, taskId);
+    const { commentId } = req.params as { commentId: string };
+    const userId = req.user!.sub;
     await deleteComment(taskId, commentId, userId, workspaceId);
     res.status(204).send();
   } catch (error) {
@@ -66,16 +63,6 @@ async function ensureWorkspaceProjectTaskExists(
   projectId: string,
   taskId: string,
 ): Promise<void> {
-  if (isNullOrUndefinedOrEmpty(workspaceId)) {
-    throw new AppError("Invalid workspace id", 400);
-  }
-  if (isNullOrUndefinedOrEmpty(projectId)) {
-    throw new AppError("Invalid project id", 400);
-  }
-  if (isNullOrUndefinedOrEmpty(taskId)) {
-    throw new AppError("Invalid task id", 400);
-  }
-
   const workspace = await getWorkspace(workspaceId);
   if (!workspace) {
     throw new AppError("Workspace not found", 404);

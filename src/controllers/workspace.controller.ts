@@ -1,20 +1,10 @@
 import { Request, Response } from "express";
 import { createWorkspace, getWorkspace, deleteWorkspace } from "../services/workspace.service.js";
-import { isNullOrUndefinedOrEmpty } from "../utils/input_validator.js";
 import { AppError } from "../utils/AppError.js";
 
 export async function createWorkspaceController(req: Request, res: Response) {
   try {
     const { name, slug } = req.body;
-    if (
-      typeof name !== "string" ||
-      isNullOrUndefinedOrEmpty(name) ||
-      typeof slug !== "string" ||
-      isNullOrUndefinedOrEmpty(slug)
-    ) {
-      console.error(name, slug);
-      throw new AppError("Invalid name or slug", 401);
-    }
     const userId = req.user!.sub;
     const workspace = await createWorkspace(userId, { name, slug });
     res.status(201).json({

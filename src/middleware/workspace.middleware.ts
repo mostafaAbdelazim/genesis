@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import { isNullOrUndefinedOrEmpty } from "../utils/input_validator.js";
 import { getMembership } from "../services/membership.service.js";
 import { WorkspaceRole } from "@prisma/client";
 import { WorkspaceRoleRank } from "../utils/workspace.role.rank.js";
@@ -7,7 +6,7 @@ import { WorkspaceRoleRank } from "../utils/workspace.role.rank.js";
 export function requireWorkspaceRole(requiredRole: WorkspaceRole) {
   return async function (req: Request, res: Response, next: NextFunction) {
     const { workspaceId } = req.params;
-    if (typeof workspaceId !== "string" || isNullOrUndefinedOrEmpty(workspaceId)) {
+    if (typeof workspaceId !== "string" || workspaceId.trim() === "") {
       return res.status(400).json({ error: "Invalid workspace id" });
     }
     const userId = req.user!.sub;

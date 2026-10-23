@@ -10,20 +10,38 @@ import {
 } from "../controllers/projects.controller.js";
 import tasksRoutes from "./tasks.routes.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { validate } from "../middleware/validate.middleware.js";
+import { createProjectBodySchema, projectParamsSchema } from "../schemas/project.schemas.js";
+import { workspaceParamsSchema } from "../schemas/workspace.schemas.js";
 
 const router = Router({ mergeParams: true });
 
 router.use(authMiddleware);
 
-router.post("/", requireWorkspaceRole(WorkspaceRole.MEMBER), asyncHandler(createProjectController));
-router.get("/", requireWorkspaceRole(WorkspaceRole.MEMBER), asyncHandler(getProjectsController));
+router.post(
+  "/",
+  validate(workspaceParamsSchema, "params"),
+  validate(createProjectBodySchema, "body"),
+  requireWorkspaceRole(WorkspaceRole.MEMBER),
+  asyncHandler(createProjectController),
+);
+router.get(
+  "/",
+  validate(workspaceParamsSchema, "params"),
+  requireWorkspaceRole(WorkspaceRole.MEMBER),
+  asyncHandler(getProjectsController),
+);
 router.get(
   "/:projectId",
+  validate(workspaceParamsSchema, "params"),
+  validate(projectParamsSchema, "params"),
   requireWorkspaceRole(WorkspaceRole.MEMBER),
   asyncHandler(getProjectController),
 );
 router.delete(
   "/:projectId",
+  validate(workspaceParamsSchema, "params"),
+  validate(projectParamsSchema, "params"),
   requireWorkspaceRole(WorkspaceRole.MEMBER),
   asyncHandler(deleteProjectController),
 );

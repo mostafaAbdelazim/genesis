@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import type { TestContext } from "node:test";
 import request from "supertest";
 import app from "../app.js";
+import { assertValidationError } from "./assertValidationError.js";
 import type { FlowContext } from "./context.js";
 import { runWorkspaceTests } from "./workspaces.test.js";
 
@@ -12,7 +13,16 @@ export async function runAuthTests(t: TestContext, ctx: FlowContext) {
       password: ctx.password,
       name: "Auth Tester",
     });
-    assert.equal(invalid.status, 400);
+    assertValidationError(invalid, "Invalid email address");
+  });
+
+  await t.test("rejects a short password", async () => {
+    const invalid = await request(app).post("/api/v1/auth/register").send({
+      email: ctx.email,
+      password: "Aa1!",
+      name: "Auth Tester",
+    });
+    assertValidationError(invalid, "Password must be at least 8 characters long");
   });
 
   await t.test("registers a user", async () => {
@@ -37,6 +47,14 @@ export async function runAuthTests(t: TestContext, ctx: FlowContext) {
     });
     assert.equal(duplicate.status, 409);
     assert.equal(duplicate.body.error, "Email already in use");
+  });
+
+  await t.test("rejects a login password with an invalid character", async () => {
+    const invalid = await request(app).post("/api/v1/auth/login").send({
+      email: ctx.email,
+      password: "Wrong pass1!",
+    });
+    assertValidationError(invalid, "Password contains an invalid character");
   });
 
   await t.test("logs in", async () => {

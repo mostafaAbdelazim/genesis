@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import type { TestContext } from "node:test";
 import request from "supertest";
 import app from "../app.js";
+import { assertValidationError } from "./assertValidationError.js";
 import type { FlowContext } from "./context.js";
 
 export async function runCommentTests(t: TestContext, ctx: FlowContext) {
@@ -9,24 +10,23 @@ export async function runCommentTests(t: TestContext, ctx: FlowContext) {
   let commentId = "";
 
   await t.test("rejects a comment request without a token", async () => {
-    const unauthenticated = await request(app).post(base).send({ body: "Looks good" });
+    const unauthenticated = await request(app).post(base).send({ content: "Looks good" });
     assert.equal(unauthenticated.status, 401);
   });
 
-  await t.test("requires a comment body", async () => {
+  await t.test("requires comment content", async () => {
     const invalid = await request(app)
       .post(base)
       .set("Authorization", `Bearer ${ctx.token}`)
-      .send({ body: "   " });
-    assert.equal(invalid.status, 400);
-    assert.equal(invalid.body.error, "Invalid body");
+      .send({ content: "" });
+    assertValidationError(invalid, "Content is required");
   });
 
   await t.test("creates a comment", async () => {
     const created = await request(app)
       .post(base)
       .set("Authorization", `Bearer ${ctx.token}`)
-      .send({ body: "Looks good" });
+      .send({ content: "Looks good" });
     assert.equal(created.status, 201);
     assert.equal(created.body.body, "Looks good");
     assert.equal(created.body.taskId, ctx.taskId);

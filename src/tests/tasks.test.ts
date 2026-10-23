@@ -2,11 +2,28 @@ import assert from "node:assert/strict";
 import type { TestContext } from "node:test";
 import request from "supertest";
 import app from "../app.js";
+import { assertValidationError } from "./assertValidationError.js";
 import type { FlowContext } from "./context.js";
 import { runCommentTests } from "./comments.test.js";
 
 export async function runTaskTests(t: TestContext, ctx: FlowContext) {
   const base = `/api/v1/workspaces/${ctx.workspaceId}/projects/${ctx.projectId}/tasks`;
+
+  await t.test("rejects an empty task title", async () => {
+    const invalid = await request(app)
+      .post(base)
+      .set("Authorization", `Bearer ${ctx.token}`)
+      .send({ title: "" });
+    assertValidationError(invalid, "Title is required");
+  });
+
+  await t.test("rejects an assignee id that is not a cuid", async () => {
+    const invalid = await request(app)
+      .post(base)
+      .set("Authorization", `Bearer ${ctx.token}`)
+      .send({ title: "Write spec", assigneeId: "user" });
+    assertValidationError(invalid, "Invalid cuid");
+  });
 
   await t.test("creates a task", async () => {
     const created = await request(app)
@@ -33,6 +50,14 @@ export async function runTaskTests(t: TestContext, ctx: FlowContext) {
       .set("Authorization", `Bearer ${ctx.token}`);
     assert.equal(fetched.status, 200);
     assert.equal(fetched.body.id, ctx.taskId);
+  });
+
+  await t.test("rejects an unknown task status", async () => {
+    const invalid = await request(app)
+      .put(`${base}/${ctx.taskId}`)
+      .set("Authorization", `Bearer ${ctx.token}`)
+      .send({ status: "BLOCKED" });
+    assertValidationError(invalid, 'Invalid option: expected one of "TODO"|"IN_PROGRESS"|"DONE"');
   });
 
   await t.test("updates a task", async () => {

@@ -11,9 +11,7 @@ export async function createProjectController(req: Request, res: Response) {
   try {
     const { name, description } = req.body;
     const workspaceId = req.params.workspaceId as string;
-    if (!name) {
-      throw new AppError("Project name is required", 400);
-    }
+  
     const project = await createProject(name, description, workspaceId);
     res.status(201).json(project);
   } catch (error) {

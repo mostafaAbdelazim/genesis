@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import type { TestContext } from "node:test";
 import request from "supertest";
 import app from "../app.js";
+import { assertValidationError } from "./assertValidationError.js";
 import type { FlowContext } from "./context.js";
 import { runProjectTests } from "./projects.test.js";
 
@@ -20,8 +21,25 @@ export async function runWorkspaceTests(t: TestContext, ctx: FlowContext) {
       .post("/api/v1/workspaces")
       .set("Authorization", `Bearer ${ctx.token}`)
       .send({ name: "", slug });
-    assert.equal(invalid.status, 401);
-    assert.equal(invalid.body.error, "Invalid name or slug");
+    assertValidationError(invalid, "Name must be at least 3 characters long");
+  });
+
+  await t.test("rejects a slug with invalid characters", async () => {
+    const invalid = await request(app)
+      .post("/api/v1/workspaces")
+      .set("Authorization", `Bearer ${ctx.token}`)
+      .send({ name: "Orbit", slug: "Orbit_Board" });
+    assertValidationError(
+      invalid,
+      "Slug must contain only lowercase letters, numbers, and hyphens",
+    );
+  });
+
+  await t.test("rejects a workspace id that is not a cuid", async () => {
+    const invalid = await request(app)
+      .get("/api/v1/workspaces/not-a-cuid")
+      .set("Authorization", `Bearer ${ctx.token}`);
+    assertValidationError(invalid, "Invalid cuid");
   });
 
   await t.test("creates and reads a workspace", async () => {
