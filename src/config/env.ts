@@ -15,6 +15,12 @@ if (!jwtAccessSecret) {
 
 const refreshTokenExpiresIn = process.env.REFRESH_TOKEN_EXPIRES_IN || "7d";
 
+const corsOrigin = process.env.CORS_ORIGIN;
+
+if (!corsOrigin) {
+  throw new Error("CORS_ORIGIN is not set");
+}
+
 export const env = {
   port,
   nodeEnv: process.env.NODE_ENV ?? "development",
@@ -22,4 +28,5 @@ export const env = {
   jwtAccessSecret,
   jwtAccessExpiresIn: jwtAccessExpiresIn,
   refreshTokenExpiresIn: refreshTokenExpiresIn,
+  corsOrigin,
 };

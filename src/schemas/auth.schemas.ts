@@ -20,6 +20,10 @@ export const loginBodySchema = z.object({
     .string()
     .min(8, "Password must be at least 8 characters long")
     .max(100, "Password must be less than 100 characters long")
+    .regex(/[a-z]/, "Password must contain a lowercase letter")
+    .regex(/[A-Z]/, "Password must contain an uppercase letter")
+    .regex(/\d/, "Password must contain a number")
+    .regex(/[@$!%*?&]/, "Password must contain a special character")
     .regex(/^[A-Za-z\d@$!%*?&]+$/, "Password contains an invalid character"),
 });
 

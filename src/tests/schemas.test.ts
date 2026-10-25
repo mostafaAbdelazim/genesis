@@ -58,9 +58,9 @@ describe("auth schemas", () => {
     assert.equal(registerBodySchema.safeParse({ ...user, email: "ada" }).success, false);
   });
 
-  it("accepts a login password that only has to match the allowed characters", () => {
+  it("accepts a valid login", () => {
     assert.equal(
-      loginBodySchema.safeParse({ email: user.email, password: "abcdefgh" }).success,
+      loginBodySchema.safeParse({ email: user.email, password: user.password }).success,
       true,
     );
   });
