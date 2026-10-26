@@ -11,7 +11,8 @@
     "db:down": "docker compose down",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "test": "tsx --test src/tests/health.test.ts src/tests/schemas.test.ts src/tests/security.test.ts"
+    "test": "NODE_ENV=test jest --runInBand",
+    "test:watch": "NODE_ENV=test jest --watch --runInBand"
   },
   "keywords": [
     "nodejs",
@@ -38,12 +39,15 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.10.0",
     "@types/supertest": "^7.2.1",
+    "jest": "^30.5.2",
     "prisma": "^6.19.3",
     "supertest": "^7.3.1",
+    "ts-jest": "^29.4.15",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   }
